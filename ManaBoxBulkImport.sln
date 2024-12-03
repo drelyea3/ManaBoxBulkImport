@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34622.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManaBoxBulkImport", "ManaBoxBulkImport\ManaBoxBulkImport.csproj", "{4F455250-4CAA-4FD7-9318-0078DF63384E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scryfall", "Scryfall\Scryfall.csproj", "{17025621-9150-4B1B-9F8C-446D9FCE75BF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4F455250-4CAA-4FD7-9318-0078DF63384E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F455250-4CAA-4FD7-9318-0078DF63384E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F455250-4CAA-4FD7-9318-0078DF63384E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F455250-4CAA-4FD7-9318-0078DF63384E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17025621-9150-4B1B-9F8C-446D9FCE75BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17025621-9150-4B1B-9F8C-446D9FCE75BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17025621-9150-4B1B-9F8C-446D9FCE75BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17025621-9150-4B1B-9F8C-446D9FCE75BF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {94215600-BCA7-4B23-AEE1-19C261EB1EA2}
+	EndGlobalSection
+EndGlobal
