@@ -19,13 +19,13 @@ internal static class Program
             return -1;
         }
 
-        ScryfallClient.SetUserAgent(UserAgent);
+        var client = new ScryfallClient(UserAgent);
 
         Console.WriteLine("Downloading sets.");
         Dictionary<string, CardSet>? setDefinitions = null;
         try
         {
-            setDefinitions = ScryfallClient.GetSets();
+            setDefinitions = client.GetSets();
         }
         catch
         {
@@ -55,7 +55,7 @@ internal static class Program
                 break;
             }
 
-            while (TryGetCard(selectedSet, out var card))
+            while (TryGetCard(client, selectedSet, out var card))
             {
                 if (card != null)
                 {
@@ -110,7 +110,7 @@ internal static class Program
         }
     }
 
-    private static bool TryGetCard(CardSet cardSet, out Card? card)
+    private static bool TryGetCard(ScryfallClient client, CardSet cardSet, out Card? card)
     {
         while (true)
         {
@@ -132,7 +132,7 @@ internal static class Program
             CardDefinition? cardDefinition;
             try
             {
-                cardDefinition = ScryfallClient.GetCardDefinition(cardSet, input);
+                cardDefinition = client.GetCardDefinition(cardSet, input);
             }
             catch
             {
