@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManaBoxBulkImport", "ManaBoxBulkImport\ManaBoxBulkImport.csproj", "{4F455250-4CAA-4FD7-9318-0078DF63384E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManaBoxBulkImport", "ManaBoxBulkImport\ManaBoxBulkImport.csproj", "{4F455250-4CAA-4FD7-9318-0078DF63384E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scryfall", "Scryfall\Scryfall.csproj", "{17025621-9150-4B1B-9F8C-446D9FCE75BF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scryfall", "Scryfall\Scryfall.csproj", "{17025621-9150-4B1B-9F8C-446D9FCE75BF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

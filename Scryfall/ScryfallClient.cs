@@ -53,7 +53,6 @@ public class ScryfallClient
         int page = 1;
         while (true)
         {
-            Console.WriteLine(requestUri);
             var response = await Client.GetAsync(requestUri);
 
             if (response.IsSuccessStatusCode)
@@ -64,7 +63,6 @@ public class ScryfallClient
                 if (items != null)
                 {
                     results.AddRange(items.Data);
-                    Console.WriteLine($"Added {items.Data.Count} total {results.Count}");
 
                     if (items.NextPage != null && items.HasMore)
                     {

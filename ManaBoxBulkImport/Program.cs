@@ -46,16 +46,27 @@ internal static class Program
         File.WriteAllLines(fileName, [Card.GetManaBoxHeader()]);
         File.WriteAllLines(backupFileName, [Card.GetManaBoxHeader()]);
 
+        var cardCache = new Dictionary<string, Dictionary<string, CardDefinition>>();
+
         var allCards = new Dictionary<string, Card>();
 
+        Dictionary<string, CardDefinition>? selectedCardSet;
         while (true)
         {
             if (!TryGetCardSet(setDefinitions, out var selectedSet) || selectedSet == null)
             {
                 break;
             }
+            else if (!cardCache.TryGetValue(selectedSet.Code, out selectedCardSet))
+            {
+                Console.WriteLine($"Loading cards for {selectedSet.Code} {selectedSet.Name}.");
+                var cards = client.GetCards(selectedSet).Result;
+                Console.WriteLine($"Loaded {cards.Count} cards.");
+                selectedCardSet = cards.ToDictionary(c => c.CollectorNumber, c => c);
+                cardCache[selectedSet.Code] = selectedCardSet;
+            }
 
-            while (TryGetCard(client, selectedSet, out var card))
+            while (TryGetCard(selectedSet.Code, selectedCardSet, out var card))
             {
                 if (card != null)
                 {
@@ -110,11 +121,11 @@ internal static class Program
         }
     }
 
-    private static bool TryGetCard(ScryfallClient client, CardSet cardSet, out Card? card)
+    private static bool TryGetCard(string setCode, Dictionary<string, CardDefinition> cardSet, out Card? card)
     {
         while (true)
         {
-            Console.Write($"Enter card ID (add 'F' for foil) [{cardSet.Code}]: ");
+            Console.Write($"Enter card ID (add 'F' for foil) [{setCode}]: ");
             var input = Console.ReadLine();
 
             if (string.IsNullOrEmpty(input))
@@ -129,12 +140,7 @@ internal static class Program
                 input = input[..^1].Trim();
             }
 
-            CardDefinition? cardDefinition;
-            try
-            {
-                cardDefinition = client.GetCardDefinition(cardSet, input);
-            }
-            catch
+            if (!cardSet.TryGetValue(input, out var cardDefinition))
             {
                 Console.WriteLine("Card not found.");
                 continue;
