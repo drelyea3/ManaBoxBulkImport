@@ -8,20 +8,19 @@ public class Card
 
     public int Count { get; set; } = 1;
     public bool IsFoil { get; }
-    public string Language => "en";
+    public string Language { get; }
     public string Condition => "near_mint";
 
     public string IsFoilText => IsFoil ? "foil" : "normal";
 
     public string GetKey()
     {
-        return $"{CardDefinition.OracleId},{IsFoilText},{Language},{Condition}";
+        return $"\"{CardDefinition.Name}\",{CardDefinition.Set},{IsFoilText},{CardDefinition.CollectorNumber},{Language},{Condition}";
     }
 
     public string GetManaBoxString()
     {
-        return
-            $"\"{CardDefinition.Name}\",{CardDefinition.Set},{Count},{IsFoilText},{CardDefinition.CollectorNumber},{Language},{Condition}";
+        return $"\"{CardDefinition.Name}\",{CardDefinition.Set},{Count},{IsFoilText},{CardDefinition.CollectorNumber},{Language},{Condition}";
     }
 
     public static string GetManaBoxHeader()
@@ -29,9 +28,11 @@ public class Card
         return "Name,Set code,Quantity,Foil,Card number,Language,Condition";
     }
 
-    public Card(CardDefinition cardDefinition, bool isFoil)
+    public Card(CardDefinition cardDefinition, bool isFoil, bool isJapanese, int count)
     {
         CardDefinition = cardDefinition;
         IsFoil = isFoil;
+        Language = isJapanese ? "ja" : "en";
+        Count = count;
     }
 }

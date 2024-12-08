@@ -14,7 +14,7 @@ public class ScryfallClient
     public ScryfallClient(string userAgent)
     {
         Client = new HttpClient();
-        Client.BaseAddress = ScryfallUri; 
+        Client.BaseAddress = ScryfallUri;
         Client.DefaultRequestHeaders.Add("User-Agent", userAgent);
     }
 
@@ -46,11 +46,11 @@ public class ScryfallClient
     }
 
     private async Task<List<TItem>> TryGetJson<TItem>(string requestUri)
-       where TItem : class
+        where TItem : class
     {
         var originalRequestUri = requestUri;
         var results = new List<TItem>();
-        int page = 1;
+        var page = 1;
         while (true)
         {
             var response = await Client.GetAsync(requestUri);
@@ -59,7 +59,7 @@ public class ScryfallClient
             {
                 var json = await response.Content.ReadAsStringAsync();
                 var items = JsonSerializer.Deserialize<Results<TItem>>(json);
-                
+
                 if (items != null)
                 {
                     results.AddRange(items.Data);
@@ -77,7 +77,7 @@ public class ScryfallClient
             }
             else
             {
-                break; 
+                break;
             }
         }
 

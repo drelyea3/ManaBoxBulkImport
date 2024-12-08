@@ -74,12 +74,16 @@ internal static class Program
 
                     if (allCards.TryGetValue(card.GetKey(), out var existing))
                     {
-                        ++existing.Count;
-                        Console.WriteLine($"Quantity updated to {existing.Count}");
+                        existing.Count += card.Count;
+                        Console.WriteLine($"Quantity updated to {existing.Count}.");
                     }
                     else
                     {
                         allCards.Add(card.GetKey(), card);
+                        if (card.Count > 1)
+                        {
+                            Console.WriteLine($"Quantity {card.Count}.");
+                        }
                     }
                 }
             }
@@ -125,22 +129,32 @@ internal static class Program
     {
         while (true)
         {
-            Console.Write($"Enter card ID (add 'F' for foil) [{setCode}]: ");
+            Console.Write($"Enter card ID (? for help) [{setCode}]: ");
             var input = Console.ReadLine();
 
+            if (input?.Trim() == "?")
+            {
+                Console.WriteLine("<code>[flags]");
+                Console.WriteLine("\tFlags are not case-sensitive and can be in any order.");
+                Console.WriteLine("\tf\tFoil");
+                Console.WriteLine("\tj\tJapanese");
+                Console.WriteLine("\txN\tCount (default count is 1)");
+                Console.WriteLine("Examples:");
+                Console.WriteLine("272 272x13 272x2f 272jf 272jfx2");
+                Console.WriteLine();
+                Console.WriteLine("Enter a blank line to return to selecting card set.");
+                Console.WriteLine();
+                continue;
+            }
             if (string.IsNullOrEmpty(input))
             {
                 card = null;
                 return false;
             }
 
-            var isFoil = input.EndsWith('f') || input.EndsWith('F');
-            if (isFoil)
-            {
-                input = input[..^1].Trim();
-            }
+            ParseInput(input, out var code, out var isJapanese, out var isFoil, out var count);
 
-            if (!cardSet.TryGetValue(input, out var cardDefinition))
+            if (!cardSet.TryGetValue(code, out var cardDefinition))
             {
                 Console.WriteLine("Card not found.");
                 continue;
@@ -150,13 +164,32 @@ internal static class Program
             {
                 isFoil = GetFixedFoil(cardDefinition, isFoil);
 
-                card = new Card(cardDefinition, isFoil);
+                card = new Card(cardDefinition, isFoil, isJapanese, count);
 
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"{card.CardDefinition.CollectorNumber} {card.CardDefinition.Name}");
+                Console.ResetColor();
                 Console.WriteLine(card.GetManaBoxString());
 
                 var nonFoilPrice = cardDefinition.Prices.Usd != null ? $"${cardDefinition.Prices.Usd}" : "n/a";
                 var foilPrice = cardDefinition.Prices.UsdFoil != null ? $"${cardDefinition.Prices.UsdFoil}" : "n/a";
-                Console.WriteLine($"Pricing: non-foil {nonFoilPrice} foil {foilPrice}");
+
+                Console.Write("Pricing: non-foil ");
+                if (!isFoil)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
+                
+                Console.Write(nonFoilPrice);
+                Console.ResetColor();
+
+                Console.Write(" foil ");
+                if (isFoil)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
+                Console.WriteLine(foilPrice);
+                Console.ResetColor();
 
                 while (true)
                 {
@@ -217,6 +250,45 @@ internal static class Program
             if (!File.Exists(filePath))
             {
                 return filePath;
+            }
+        }
+    }
+
+    public static void ParseInput(string input, out string code, out bool isJapanese, out bool isFoil, out int count)
+    {
+        // isJapanese = j
+        // isFoil = f
+        // count = x<N>
+
+        input = input.Trim().Replace(" ", "");
+
+        int index = input.IndexOfAny(['j', 'J', 'F', 'f', 'x', 'X']);
+        if (index == -1)
+        {
+            code = input;
+            isJapanese = false;
+            isFoil = false;
+            count = 1;
+            return;
+        }
+
+        code = input.Substring(0, index);
+        input = input.Substring(index).ToUpper();
+        isJapanese = input.IndexOf('J') != -1;
+        isFoil = input.IndexOf('F') != -1;
+        var digitIndex = input.IndexOf("X");
+        if (digitIndex == -1)
+        {
+            count = 1;
+        }
+        else
+        {
+            count = 0;
+            ++digitIndex;
+            while (digitIndex < input.Length && char.IsDigit(input[digitIndex]))
+            {
+                count = count * 10 + input[digitIndex] - '0';
+                ++digitIndex;
             }
         }
     }

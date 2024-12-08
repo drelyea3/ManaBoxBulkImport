@@ -13,7 +13,7 @@ public class Card
 
     public string GetKey()
     {
-        return $"{CardDefinition.OracleId},{IsFoilText},{Language},{Condition}";
+        return $"\"{CardDefinition.Name}\",{CardDefinition.Set},{IsFoilText},{CardDefinition.CollectorNumber},{Language},{Condition}";
     }
 
     public string GetManaBoxString()
