@@ -138,9 +138,9 @@ internal static class Program
                 Console.WriteLine("\tFlags are not case-sensitive and can be in any order.");
                 Console.WriteLine("\tf\tFoil");
                 Console.WriteLine("\tj\tJapanese");
-                Console.WriteLine("\txN\tCount (default count is 1)");
+                Console.WriteLine("\t<N>\tCount (default count is 1)");
                 Console.WriteLine("Examples:");
-                Console.WriteLine("272 272x13 272x2f 272jf 272jfx2");
+                Console.WriteLine("272 272,13 272 2f 272jf 272jf2");
                 Console.WriteLine();
                 Console.WriteLine("Enter a blank line to return to selecting card set.");
                 Console.WriteLine();
@@ -152,7 +152,7 @@ internal static class Program
                 return false;
             }
 
-            ParseInput(input, out var code, out var isJapanese, out var isFoil, out var count);
+            InputParser.Parse(input, out var code, out var isJapanese, out var isFoil, out var count);
 
             if (!cardSet.TryGetValue(code, out var cardDefinition))
             {
@@ -179,7 +179,7 @@ internal static class Program
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
                 }
-                
+
                 Console.Write(nonFoilPrice);
                 Console.ResetColor();
 
@@ -250,45 +250,6 @@ internal static class Program
             if (!File.Exists(filePath))
             {
                 return filePath;
-            }
-        }
-    }
-
-    public static void ParseInput(string input, out string code, out bool isJapanese, out bool isFoil, out int count)
-    {
-        // isJapanese = j
-        // isFoil = f
-        // count = x<N>
-
-        input = input.Trim().Replace(" ", "");
-
-        int index = input.IndexOfAny(['j', 'J', 'F', 'f', 'x', 'X']);
-        if (index == -1)
-        {
-            code = input;
-            isJapanese = false;
-            isFoil = false;
-            count = 1;
-            return;
-        }
-
-        code = input.Substring(0, index);
-        input = input.Substring(index).ToUpper();
-        isJapanese = input.IndexOf('J') != -1;
-        isFoil = input.IndexOf('F') != -1;
-        var digitIndex = input.IndexOf("X");
-        if (digitIndex == -1)
-        {
-            count = 1;
-        }
-        else
-        {
-            count = 0;
-            ++digitIndex;
-            while (digitIndex < input.Length && char.IsDigit(input[digitIndex]))
-            {
-                count = count * 10 + input[digitIndex] - '0';
-                ++digitIndex;
             }
         }
     }
