@@ -10,7 +10,7 @@ internal static class Program
 
     private static int Main(string[] _)
     {
-        Console.WriteLine("ManaBox Bulk Importer v.1.0.0");
+        Console.WriteLine("ManaBox Bulk Importer 1.0.0");
 
         var oneDrivePath = Environment.GetEnvironmentVariable("OneDriveConsumer");
         if (string.IsNullOrEmpty(oneDrivePath))

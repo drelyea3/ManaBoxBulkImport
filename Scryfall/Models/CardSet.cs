@@ -18,13 +18,13 @@ public class CardSet
 
     [JsonPropertyName("name")] public string Name { get; set; }
 
-    [JsonPropertyName("uri")] public string Uri { get; set; }
+    [JsonPropertyName("uri")] public Uri Uri { get; set; }
 
-    [JsonPropertyName("scryfall_uri")] public string ScryfallUri { get; set; }
+    [JsonPropertyName("scryfall_uri")] public Uri ScryfallUri { get; set; }
 
-    [JsonPropertyName("search_uri")] public string SearchUri { get; set; }
+    [JsonPropertyName("search_uri")] public Uri SearchUri { get; set; }
 
-    [JsonPropertyName("released_at")] public string ReleasedAt { get; set; }
+    [JsonPropertyName("released_at")] public DateOnly ReleasedAt { get; set; }
 
     [JsonPropertyName("set_type")] public string SetType { get; set; }
 
@@ -36,5 +36,5 @@ public class CardSet
 
     [JsonPropertyName("foil_only")] public bool FoilOnly { get; set; }
 
-    [JsonPropertyName("icon_svg_uri")] public string IconSvgUri { get; set; }
+    [JsonPropertyName("icon_svg_uri")] public Uri IconSvgUri { get; set; }
 }

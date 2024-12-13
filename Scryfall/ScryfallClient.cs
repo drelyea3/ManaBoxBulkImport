@@ -45,6 +45,44 @@ public class ScryfallClient
         return TryGetJson<CardDefinition>($"/cards/search?q=set:{cardSet.Code}+unique:prints+game:paper");
     }
 
+    public async Task<List<Symbology>> GetSymbologyAsync()
+    {
+        var results = await TryGetJson<Symbology>("/symbology");
+
+        return results ?? [];
+    }
+
+    public async Task FetchSymbols(string baseOutputDir)
+    {
+        var symbols = await GetSymbologyAsync();
+        var sets = await GetSetsAsync();
+
+        var symUris = symbols.Select(s => s.SvgUri).ToList();
+        var setUris = sets!.Select(s => s.Value.IconSvgUri);
+
+        using HttpClient httpClient = new HttpClient();
+        httpClient.BaseAddress = new Uri("https://svgs.scryfall.io");
+        httpClient.DefaultRequestHeaders.Add("User-Agent", "Symbol-Scraper");
+
+        await GetSvgAsync(httpClient, symUris, Path.Join(baseOutputDir, "sym"));
+        await GetSvgAsync(httpClient, setUris, Path.Join(baseOutputDir, "set"));
+    }
+
+    private static async Task GetSvgAsync(HttpClient httpClient, IEnumerable<Uri> svgUris, string dir)
+    {
+        Directory.CreateDirectory(dir);
+
+        foreach (var svgUri in svgUris)
+        {
+            var uriPart = httpClient.BaseAddress!.MakeRelativeUri(svgUri);
+            var svg = await httpClient.GetStringAsync(uriPart);
+            var fn = Path.Join(dir, Path.GetFileName(svgUri.LocalPath));
+            Console.WriteLine(fn);
+            File.WriteAllText(fn, svg);
+            Task.Delay(100).Wait();
+        }
+    }
+
     private async Task<List<TItem>> TryGetJson<TItem>(string requestUri)
         where TItem : class
     {
