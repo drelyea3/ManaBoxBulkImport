@@ -44,8 +44,8 @@ public class Symbology
     public bool? Funny { get; set; }
 
     [JsonPropertyName("colors")]
-    public List<object> Colors { get; } = new List<object>();
+    public List<string> Colors { get; set; } = new List<string>();
 
     [JsonPropertyName("gatherer_alternates")]
-    public List<string> GathererAlternates { get; } = new List<string>();
+    public List<string> GathererAlternates { get; set; } = new List<string>();
 }

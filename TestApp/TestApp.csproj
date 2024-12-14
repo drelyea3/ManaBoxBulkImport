@@ -86,7 +86,7 @@
       <Resource Include="Images\set\cmr.png" />
       <Resource Include="Images\set\cn2.png" />
       <Resource Include="Images\set\cns.png" />
-      <Resource Include="Images\set\con.png" />
+      <Resource Include="Images\set\_con.png" />
       <Resource Include="Images\set\csp.png" />
       <Resource Include="Images\set\dci.png" />
       <Resource Include="Images\set\dd1.png" />

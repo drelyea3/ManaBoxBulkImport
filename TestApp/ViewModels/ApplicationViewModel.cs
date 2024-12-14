@@ -9,7 +9,13 @@ public class ApplicationViewModel : ViewModelBase
 {
     private CardSet? _selectedSetDefinition;
     private IEnumerable<CardDefinition>? _cardDefinitions;
+    private ColorFilter _colorFilter;
 
+    public ColorFilter ColorFilter
+    {
+        get => _colorFilter;
+        set => SetField(ref _colorFilter, value);
+    }
     public CollectionViewSource SetDefinitions { get; } = new();
     public IEnumerable<CardDefinition>? CardDefinitions { get => _cardDefinitions; set => SetField(ref _cardDefinitions , value); }
 
@@ -25,6 +31,10 @@ public class ApplicationViewModel : ViewModelBase
         }
     }
 
+    public ApplicationViewModel()
+    {
+        _colorFilter = new ColorFilter();       
+    }
     private async void UpdateCardSet()
     {
         CardDefinitions = [];

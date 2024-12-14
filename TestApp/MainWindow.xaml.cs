@@ -2,9 +2,11 @@
 using Scryfall;
 using Scryfall.Models;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -31,7 +33,7 @@ public partial class MainWindow : Window
         _viewModel = Services.Provider.GetRequiredService<ApplicationViewModel>();
 
         DataContext = _viewModel;
-
+        _viewModel.ColorFilter.PropertyChanged += OnColorFilterChanged;
         _viewModel.SetDefinitions.SortDescriptions.Add(new SortDescription("Name", ListSortDirection.Ascending));
 
         Task.Run(async () =>
@@ -44,6 +46,14 @@ public partial class MainWindow : Window
         });
 
         PreviewKeyDown += MainWindow_PreviewKeyDown;
+    }
+
+    private void OnColorFilterChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (Resources["CardDefinitionsViewSource"] is CollectionViewSource cvs)
+        {
+            cvs.View.Refresh();
+        }
     }
 
     private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -87,15 +97,60 @@ public partial class MainWindow : Window
     {
         if (e.Item is CardDefinition cardDefinition)
         {
-            //Debug.WriteLine(cardDefinition.Name + " " + cardDefinition.ManaCost);
-            //GetManaCost(cardDefinition.ManaCost, out int colorLess, out int red, out int blue, out int green, out int black, out int white, out int total);
-            //e.Accepted = green + colorLess == total && green > 0;
-
-            e.Accepted = true;
+            //GetManaCost(cardDefinition.ManaCost, out int colorLess, out int red, out int blue, out int green, out int white, out int black, out int total);
+            var flags = GetColorFlags(cardDefinition.ManaCost);
+            //if (flags == ColorFlags.None)
+            //{
+            //    e.Accepted = true;// _viewModel.ColorFilter.Colors == ColorFlags.None;
+            //}
+            //else
+            {
+                //Debug.WriteLine($"Comparing {flags} to filter {_viewModel.ColorFilter.Colors} Any {_viewModel.ColorFilter.Any(flags)} All {_viewModel.ColorFilter.All(flags)} None {_viewModel.ColorFilter.None(flags)}");
+                //Debug.WriteLine($"Cost {cardDefinition.ManaCost} Colors {string.Join(", ", cardDefinition.Colors)} Identity {string.Join(", ", cardDefinition.ColorIdentity)} Produced {string.Join(", ", cardDefinition.ProducedMana)}");
+                e.Accepted = _viewModel.ColorFilter.All(flags);
+            }
         }
     }
 
-    private void GetManaCost(string manaCost, out int colorLess, out int red, out int blue, out int green, out int black, out int white, out int total)
+    private ColorFlags GetColorFlags(string manaCost)
+    {
+        ColorFlags colorFlags = ColorFlags.None;
+
+        foreach (var c in manaCost.ToUpper())
+        {
+            switch (c)
+            {
+                case 'R':
+                    colorFlags |= ColorFlags.Red;
+                    break;
+                case 'G':
+                    colorFlags |= ColorFlags.Green;
+                    break;
+                case 'U':
+                    colorFlags |= ColorFlags.Blue;
+                    break;
+                case 'W':
+                    colorFlags |= ColorFlags.White;
+                    break;
+                case 'B':
+                    colorFlags |= ColorFlags.Black;
+                    break;
+                case 'X':
+                    colorFlags |= ColorFlags.Colorless;
+                    break;
+                default:
+                    if (char.IsDigit(c))
+                    {
+                        colorFlags |= ColorFlags.Colorless;
+                    }
+                    break;
+            }
+        }
+
+        return colorFlags;
+    }
+
+    private void GetManaCost(string manaCost, out int colorLess, out int red, out int blue, out int green, out int white, out int black, out int total)
     {
         var parts = manaCost?.Split([',', '{', '}'], StringSplitOptions.RemoveEmptyEntries) ?? [];
 
@@ -104,7 +159,7 @@ public partial class MainWindow : Window
         foreach (var part in parts)
         {
             switch (part)
-                {
+            {
                 case "R":
                     ++red;
                     break;

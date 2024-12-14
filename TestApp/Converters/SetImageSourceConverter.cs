@@ -18,6 +18,11 @@ namespace TestApp.Converters
                 if (!_imageSources.TryGetValue(set.IconSvgUri, out var bmp))
                 {
                     var fileName = Path.GetFileName(set.IconSvgUri.LocalPath).Replace(".svg", ".png");
+                    if (fileName == "con.png")
+                    {
+                        // Files named con.* have problems with git on Windows.
+                        fileName = "_" + fileName;
+                    }
                     var uri = new Uri($"pack://application:,,,/Images/set/{fileName}");
                     bmp = new BitmapImage(uri);
                     _imageSources[set.IconSvgUri] = bmp;

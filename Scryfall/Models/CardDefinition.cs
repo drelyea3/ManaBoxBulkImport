@@ -10,7 +10,7 @@ public class CardDefinition
 
     [JsonPropertyName("oracle_id")] public string OracleId { get; set; }
 
-    [JsonPropertyName("multiverse_ids")] public List<int> MultiverseIds { get; } = [];
+    [JsonPropertyName("multiverse_ids")] public List<int> MultiverseIds { get; set; } = [];
 
     [JsonPropertyName("mtgo_id")] public int MtgoId { get; set; }
 
@@ -44,19 +44,19 @@ public class CardDefinition
 
     [JsonPropertyName("loyalty")] public string Loyalty { get; set; }
 
-    [JsonPropertyName("colors")] public List<string> Colors { get; } = [];
+    [JsonPropertyName("colors")] public List<string> Colors { get; set; } = [];
 
-    [JsonPropertyName("color_identity")] public List<string> ColorIdentity { get; } = [];
+    [JsonPropertyName("color_identity")] public List<string> ColorIdentity { get; set; } = [];
 
-    [JsonPropertyName("keywords")] public List<string> Keywords { get; } = [];
+    [JsonPropertyName("keywords")] public List<string> Keywords { get; set; } = [];
 
-    [JsonPropertyName("produced_mana")] public List<string> ProducedMana { get; } = [];
+    [JsonPropertyName("produced_mana")] public List<string> ProducedMana { get; set; } = [];
 
-    [JsonPropertyName("all_parts")] public List<AllPart> AllParts { get; } = [];
+    [JsonPropertyName("all_parts")] public List<AllPart> AllParts { get; set; } = [];
 
     [JsonPropertyName("legalities")] public Legalities Legalities { get; set; }
 
-    [JsonPropertyName("games")] public List<string> Games { get; } = [];
+    [JsonPropertyName("games")] public List<string> Games { get; set; } = [];
 
     [JsonPropertyName("reserved")] public bool Reserved { get; set; }
 
@@ -64,7 +64,7 @@ public class CardDefinition
 
     [JsonPropertyName("nonfoil")] public bool Nonfoil { get; set; }
 
-    [JsonPropertyName("finishes")] public List<string> Finishes { get; } = [];
+    [JsonPropertyName("finishes")] public List<string> Finishes { get; set; } = [];
 
     [JsonPropertyName("oversized")] public bool Oversized { get; set; }
 
@@ -103,7 +103,7 @@ public class CardDefinition
 
     [JsonPropertyName("artist")] public string Artist { get; set; }
 
-    [JsonPropertyName("artist_ids")] public List<string> ArtistIds { get; } = [];
+    [JsonPropertyName("artist_ids")] public List<string> ArtistIds { get; set; } = [];
 
     [JsonPropertyName("illustration_id")] public string IllustrationId { get; set; }
 
@@ -121,7 +121,7 @@ public class CardDefinition
 
     [JsonPropertyName("story_spotlight")] public bool StorySpotlight { get; set; }
 
-    [JsonPropertyName("promo_types")] public List<string> PromoTypes { get; } = [];
+    [JsonPropertyName("promo_types")] public List<string> PromoTypes { get; set; } = [];
 
     [JsonPropertyName("edhrec_rank")] public int EdhrecRank { get; set; }
 

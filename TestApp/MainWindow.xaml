@@ -31,7 +31,12 @@
         <TabItem Header="Collections" />
         <TabItem Header="Lists" />
         <TabItem Header="Decks" />
-        <TabItem Header="Search">
+        <TabItem
+            Width="47"
+            Height="20"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            Header="Search">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
@@ -60,89 +65,165 @@
                         <DataGridTextColumn Binding="{Binding CollectorNumber}" Header="Number" />
                         <DataGridTextColumn Binding="{Binding Name}" Header="Name" />
 
+                        <DataGridTextColumn Binding="{Binding TypeLine}" Header="Type" />
+
                         <DataGridTemplateColumn Header="Mana Cost">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate DataType="{x:Type sfm:CardDefinition}">
                                     <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                                        <controls:ManaCostPanel
+                                        <controls:ManaPanel
                                             MaxHeight="20"
                                             VerticalAlignment="Center"
-                                            ManaCostText="{Binding ManaCost}"
+                                            Mana="{Binding ManaCost}"
                                             Orientation="Horizontal" />
                                     </StackPanel>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
-                        <DataGridTextColumn Binding="{Binding TypeLine}" Header="Type" />
+                        <DataGridTemplateColumn Header="Mana Produced">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate DataType="{x:Type sfm:CardDefinition}">
+                                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                        <controls:ManaPanel
+                                            MaxHeight="20"
+                                            VerticalAlignment="Center"
+                                            Mana="{Binding ProducedMana}"
+                                            Orientation="Horizontal" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
                     </DataGrid.Columns>
                 </DataGrid>
-                <!--<ListView Margin="10" ItemsSource="{Binding Source={StaticResource CardDefinitionsViewSource}}" >
-            <ListView.View>
-                <GridView>
-                    <GridView.Columns>
-                        <GridViewColumn Header="Number" DisplayMemberBinding="{Binding CollectorNumber}"/>
-                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}"/>
-                    </GridView.Columns>
-                </GridView>
-            </ListView.View>
-        </ListView>-->
 
-                <Grid Grid.Row="1" Margin="10">
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock
-                                VerticalAlignment="Center"
-                                FontSize="15"
-                                Text="Set" />
-                            <ToggleButton
-                                Margin="2"
-                                Padding="4,0"
-                                VerticalAlignment="Center"
-                                Background="Transparent"
-                                Content="by Code"
-                                TextBlock.FontSize="8" />
-                            <ToggleButton
-                                Margin="2"
-                                Padding="4,0"
-                                VerticalAlignment="Center"
-                                Background="Transparent"
-                                Content="by Name"
-                                TextBlock.FontSize="8" />
+                <StackPanel Grid.Row="1" Orientation="Horizontal">
+                    <Grid Margin="10">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontSize="15"
+                                    Text="Set" />
+                                <ToggleButton
+                                    Margin="2"
+                                    Padding="4,0"
+                                    VerticalAlignment="Center"
+                                    Background="Transparent"
+                                    Content="by Code"
+                                    TextBlock.FontSize="8" />
+                                <ToggleButton
+                                    Margin="2"
+                                    Padding="4,0"
+                                    VerticalAlignment="Center"
+                                    Background="Transparent"
+                                    Content="by Name"
+                                    TextBlock.FontSize="8" />
+                            </StackPanel>
+                            <ComboBox
+                                Width="200"
+                                HorizontalAlignment="Left"
+                                ItemsSource="{Binding SetDefinitions.View}"
+                                SelectedItem="{Binding SelectedSetDefinition}"
+                                VirtualizingPanel.IsVirtualizing="True">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type sfm:CardSet}">
+                                        <StackPanel Orientation="Horizontal" TextBlock.FontSize="15">
+
+                                            <Image
+                                                Width="30"
+                                                Height="30"
+                                                Margin="10,0"
+                                                VerticalAlignment="Center"
+                                                Source="{Binding Converter={StaticResource SetImageSourceConverter}}"
+                                                Stretch="Uniform" />
+
+                                            <TextBlock
+                                                MinWidth="50"
+                                                VerticalAlignment="Center"
+                                                FontWeight="DemiBold"
+                                                Text="{Binding Code}" />
+
+                                            <TextBlock VerticalAlignment="Center" Text="{Binding Name}" />
+
+                                        </StackPanel>
+
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+
                         </StackPanel>
-                        <ComboBox
-                            Width="200"
-                            HorizontalAlignment="Left"
-                            ItemsSource="{Binding SetDefinitions.View}"
-                            SelectedItem="{Binding SelectedSetDefinition}"
-                            VirtualizingPanel.IsVirtualizing="True">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate DataType="{x:Type sfm:CardSet}">
-                                    <StackPanel Orientation="Horizontal" TextBlock.FontSize="15">
+                    </Grid>
+                    <Border
+                        Padding="2"
+                        VerticalAlignment="Center"
+                        BorderBrush="Black"
+                        BorderThickness="1"
+                        CornerRadius="4">
+                        <StackPanel Orientation="Horizontal">
+                            <ToggleButton
+                                Height="40"
+                                Margin="2"
+                                Padding="2"
+                                IsChecked="{Binding ColorFilter.IsColorless, Mode=TwoWay}">
+                                <ToggleButton.Content>
+                                    <Image Source="Images/sym/C.png" Stretch="Uniform" />
+                                </ToggleButton.Content>
+                            </ToggleButton>
+                            <ToggleButton
+                                Height="40"
+                                Margin="2"
+                                Padding="2"
+                                IsChecked="{Binding ColorFilter.IsRed, Mode=TwoWay}">
+                                <ToggleButton.Content>
+                                    <Image Source="Images/sym/R.png" Stretch="Uniform" />
+                                </ToggleButton.Content>
+                            </ToggleButton>
 
-                                        <Image
-                                            Width="30"
-                                            Height="30"
-                                            Margin="10,0"
-                                            VerticalAlignment="Center"
-                                            Source="{Binding Converter={StaticResource SetImageSourceConverter}}"
-                                            Stretch="Uniform" />
+                            <ToggleButton
+                                Height="40"
+                                Margin="2"
+                                Padding="2"
+                                IsChecked="{Binding ColorFilter.IsGreen, Mode=TwoWay}">
+                                <ToggleButton.Content>
+                                    <Image Source="Images/sym/G.png" Stretch="Uniform" />
+                                </ToggleButton.Content>
+                            </ToggleButton>
 
-                                        <TextBlock
-                                            MinWidth="50"
-                                            VerticalAlignment="Center"
-                                            FontWeight="DemiBold"
-                                            Text="{Binding Code}" />
+                            <ToggleButton
+                                Height="40"
+                                Margin="2"
+                                Padding="2"
+                                IsChecked="{Binding ColorFilter.IsBlue, Mode=TwoWay}">
+                                <ToggleButton.Content>
+                                    <Image Source="Images/sym/U.png" Stretch="Uniform" />
+                                </ToggleButton.Content>
+                            </ToggleButton>
 
-                                        <TextBlock VerticalAlignment="Center" Text="{Binding Name}" />
+                            <ToggleButton
+                                Height="40"
+                                Margin="2"
+                                Padding="2"
+                                IsChecked="{Binding ColorFilter.IsWhite, Mode=TwoWay}">
+                                <ToggleButton.Content>
+                                    <Image Source="Images/sym/W.png" Stretch="Uniform" />
+                                </ToggleButton.Content>
+                            </ToggleButton>
 
-                                    </StackPanel>
+                            <ToggleButton
+                                Height="40"
+                                Margin="2"
+                                Padding="2"
+                                IsChecked="{Binding ColorFilter.IsBlack, Mode=TwoWay}">
+                                <ToggleButton.Content>
+                                    <Image Source="Images/sym/B.png" Stretch="Uniform" />
+                                </ToggleButton.Content>
+                            </ToggleButton>
 
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                    </StackPanel>
-                </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
             </Grid>
         </TabItem>
     </TabControl>
