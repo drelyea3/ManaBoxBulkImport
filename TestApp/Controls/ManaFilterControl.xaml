@@ -15,7 +15,7 @@
             Padding="2"
             IsChecked="{Binding Colors.IsColorless, Mode=TwoWay}">
             <ToggleButton.Content>
-                <Image Source="/Images/sym/C.png" Stretch="Uniform" />
+                <Image Source="/Images/sym/_C.png" Stretch="Uniform" />
             </ToggleButton.Content>
         </ToggleButton>
 
@@ -25,7 +25,7 @@
             Padding="2"
             IsChecked="{Binding Colors.IsRed, Mode=TwoWay}">
             <Viewbox Stretch="Uniform" StretchDirection="Both">
-                <Image Source="/Images/sym/R.png" Stretch="Uniform" />
+                <Image Source="/Images/sym/_R.png" Stretch="Uniform" />
             </Viewbox>
         </ToggleButton>
 
@@ -35,7 +35,7 @@
             Padding="2"
             IsChecked="{Binding Colors.IsGreen, Mode=TwoWay}">
             <Viewbox Stretch="Uniform" StretchDirection="Both">
-                <Image Source="/Images/sym/G.png" Stretch="Uniform" />
+                <Image Source="/Images/sym/_G.png" Stretch="Uniform" />
             </Viewbox>
         </ToggleButton>
 
@@ -45,7 +45,7 @@
             Padding="2"
             IsChecked="{Binding Colors.IsBlue, Mode=TwoWay}">
             <Viewbox Stretch="Uniform" StretchDirection="Both">
-                <Image Source="/Images/sym/U.png" Stretch="Uniform" />
+                <Image Source="/Images/sym/_U.png" Stretch="Uniform" />
             </Viewbox>
 
         </ToggleButton>
@@ -56,7 +56,7 @@
             Padding="2"
             IsChecked="{Binding Colors.IsWhite, Mode=TwoWay}">
             <Viewbox Stretch="Uniform" StretchDirection="Both">
-                <Image Source="/Images/sym/W.png" Stretch="Uniform" />
+                <Image Source="/Images/sym/_W.png" Stretch="Uniform" />
             </Viewbox>
 
         </ToggleButton>
@@ -67,7 +67,7 @@
             Padding="2"
             IsChecked="{Binding Colors.IsBlack, Mode=TwoWay}">
             <Viewbox Stretch="Uniform" StretchDirection="Both">
-                <Image Source="/Images/sym/B.png" Stretch="Uniform" />
+                <Image Source="/Images/sym/_B.png" Stretch="Uniform" />
             </Viewbox>
         </ToggleButton>
 

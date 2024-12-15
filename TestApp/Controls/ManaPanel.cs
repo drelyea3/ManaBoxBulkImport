@@ -58,7 +58,7 @@ namespace TestApp.Controls
                 var fixedManaType = manaType.Replace("/", "");
                 if (!_imageCache.TryGetValue(fixedManaType, out var bmp))
                 {
-                    var uri = new Uri($"pack://application:,,,/Images/sym/{fixedManaType}.png");
+                    var uri = new Uri($"pack://application:,,,/Images/sym/_{fixedManaType}.png");
                     bmp = new BitmapImage(uri);
                     _imageCache[fixedManaType] = bmp;
                 }

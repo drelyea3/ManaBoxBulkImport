@@ -76,7 +76,7 @@ public class ScryfallClient
         {
             var uriPart = httpClient.BaseAddress!.MakeRelativeUri(svgUri);
             var svg = await httpClient.GetStringAsync(uriPart);
-            var fn = Path.Join(dir, Path.GetFileName(svgUri.LocalPath));
+            var fn = Path.Join(dir, "_" + Path.GetFileName(svgUri.LocalPath));
             Console.WriteLine(fn);
             File.WriteAllText(fn, svg);
             Task.Delay(100).Wait();

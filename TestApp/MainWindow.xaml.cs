@@ -132,8 +132,6 @@ public partial class MainWindow : MetroWindow
         {
             ColorFlags producedFlags = ColorFlags.None;
 
-            Debug.WriteLine($"{string.Join(", ", cardDefinition.ProducedMana)} {cardDefinition.Name}");
-
             foreach (var color in cardDefinition.ProducedMana)
             {                
                 producedFlags |= GetColorFlags(color);
