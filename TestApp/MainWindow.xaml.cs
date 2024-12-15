@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MahApps.Metro.Controls;
+using Microsoft.Extensions.DependencyInjection;
 using Scryfall;
 using Scryfall.Models;
 using System.ComponentModel;
@@ -17,7 +18,7 @@ namespace TestApp;
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : Window
+public partial class MainWindow : MetroWindow
 {
     private ApplicationViewModel _viewModel;
     private ScryfallClient _scryfallClient;
@@ -33,7 +34,9 @@ public partial class MainWindow : Window
         _viewModel = Services.Provider.GetRequiredService<ApplicationViewModel>();
 
         DataContext = _viewModel;
-        _viewModel.ColorFilter.PropertyChanged += OnColorFilterChanged;
+        _viewModel.ManaCostFilter.PropertyChanged += OnColorFilterChanged;
+        _viewModel.ManaProducedFilter.PropertyChanged += OnColorFilterChanged;
+
         _viewModel.SetDefinitions.SortDescriptions.Add(new SortDescription("Name", ListSortDirection.Ascending));
 
         Task.Run(async () =>
@@ -97,18 +100,46 @@ public partial class MainWindow : Window
     {
         if (e.Item is CardDefinition cardDefinition)
         {
-            //GetManaCost(cardDefinition.ManaCost, out int colorLess, out int red, out int blue, out int green, out int white, out int black, out int total);
-            var flags = GetColorFlags(cardDefinition.ManaCost);
-            //if (flags == ColorFlags.None)
-            //{
-            //    e.Accepted = true;// _viewModel.ColorFilter.Colors == ColorFlags.None;
-            //}
-            //else
+            var hasCostFilter = _viewModel.ManaCostFilter.Colors != ColorFlags.None;
+            var hasProducedFilter = _viewModel.ManaProducedFilter.Colors != ColorFlags.None;
+
+            if (hasCostFilter && hasProducedFilter)
             {
-                //Debug.WriteLine($"Comparing {flags} to filter {_viewModel.ColorFilter.Colors} Any {_viewModel.ColorFilter.Any(flags)} All {_viewModel.ColorFilter.All(flags)} None {_viewModel.ColorFilter.None(flags)}");
-                //Debug.WriteLine($"Cost {cardDefinition.ManaCost} Colors {string.Join(", ", cardDefinition.Colors)} Identity {string.Join(", ", cardDefinition.ColorIdentity)} Produced {string.Join(", ", cardDefinition.ProducedMana)}");
-                e.Accepted = _viewModel.ColorFilter.All(flags);
+                e.Accepted = AcceptCost(cardDefinition) || AcceptProduced(cardDefinition);
             }
+            else if (hasCostFilter)
+            {
+                e.Accepted = AcceptCost(cardDefinition);
+            }
+            else if (hasProducedFilter)
+            {
+                e.Accepted = AcceptProduced(cardDefinition);
+            }
+            else
+            {
+                e.Accepted = true;
+            }
+        }
+
+        bool AcceptCost(CardDefinition cardDefinition)
+        {
+            var costFlags = GetColorFlags(cardDefinition.ManaCost);
+
+            return costFlags != ColorFlags.None && _viewModel.ManaCostFilter.All(costFlags);
+        }
+
+        bool AcceptProduced(CardDefinition cardDefinition)
+        {
+            ColorFlags producedFlags = ColorFlags.None;
+
+            Debug.WriteLine($"{string.Join(", ", cardDefinition.ProducedMana)} {cardDefinition.Name}");
+
+            foreach (var color in cardDefinition.ProducedMana)
+            {                
+                producedFlags |= GetColorFlags(color);
+            }
+
+            return producedFlags != ColorFlags.None && _viewModel.ManaProducedFilter.Any(producedFlags);
         }
     }
 
@@ -136,6 +167,7 @@ public partial class MainWindow : Window
                     colorFlags |= ColorFlags.Black;
                     break;
                 case 'X':
+                case 'C':
                     colorFlags |= ColorFlags.Colorless;
                     break;
                 default:

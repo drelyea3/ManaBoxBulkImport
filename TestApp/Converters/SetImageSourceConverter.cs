@@ -24,7 +24,7 @@ namespace TestApp.Converters
                         fileName = "_" + fileName;
                     }
                     var uri = new Uri($"pack://application:,,,/Images/set/{fileName}");
-                    bmp = new BitmapImage(uri);
+                    bmp = new BitmapImage(uri);                    
                     _imageSources[set.IconSvgUri] = bmp;
                 }
 
