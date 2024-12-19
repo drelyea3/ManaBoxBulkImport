@@ -11,7 +11,7 @@ public static class InputParser
         GettingCount,
     }
 
-    public static bool Parse(string input, out string code, out bool isJapanese, out bool isFoil, out int count)
+    public static bool Parse(string input, out string? set, out string code, out bool isJapanese, out bool isFoil, out int count)
     {
         // isJapanese = j
         // isFoil = f
@@ -19,6 +19,7 @@ public static class InputParser
 
         var state = State.GettingCode;
 
+        set = null;
         code = string.Empty;
         isJapanese = false;
         isFoil = false;
@@ -34,6 +35,17 @@ public static class InputParser
             {
                 switch (c)
                 {
+                    case ':':
+                        if (code.Length == 0 || set?.Length > 0)
+                        {
+                            return false;
+                        }
+
+                        set = code;
+                        code = string.Empty;
+                        ++index;
+                        continue;
+
                     case 'f' or 'F':
                         if (code.Length > 0)
                         {

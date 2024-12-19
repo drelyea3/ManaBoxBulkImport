@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using TestApp.ViewModels;
+using Windows.Media.Protection.PlayReady;
 
 namespace TestApp;
 
@@ -45,6 +46,28 @@ public partial class MainWindow : MetroWindow
             _ = Dispatcher.BeginInvoke(() =>
             {
                 _viewModel.SetDefinitions.Source = sets?.Values.Where(set => set.ReleasedAt.Year >= 2020);
+            });
+        });
+
+        var vm = new CardListViewModel();
+
+        Task.Run(() =>
+        {
+            var bulkData = _scryfallClient.GetBulkData().First(bd => bd.Name == "Default Cards");
+
+            var defaultCards = _scryfallClient.GetBulkData(bulkData);
+
+            var cardCache = defaultCards.GroupBy(cd => cd.Set).ToDictionary(g => g.Key, g => g.ToDictionary(gg => gg.CollectorNumber, gg => gg, StringComparer.OrdinalIgnoreCase), StringComparer.OrdinalIgnoreCase);
+
+            vm.Load(cardCache, @"C:\Users\Relye\OneDrive\Manabox\ManaBox_Collection.csv");
+
+            Dispatcher.BeginInvoke(() => 
+            {
+                if (Resources["GalleryViewSource"] is CollectionViewSource cvs)
+                {
+                    cvs.Source = vm.Cards;
+                    cvs.View.Refresh();
+                }
             });
         });
 

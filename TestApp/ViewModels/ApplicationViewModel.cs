@@ -19,7 +19,6 @@ public class ApplicationViewModel : ViewModelBase
         set => SetField(ref _manaCostFilter, value);
     }
 
-
     public ColorFilter ManaProducedFilter
     {
         get => _manaProducedFilter;

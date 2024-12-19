@@ -5,11 +5,15 @@ namespace ManaBoxBulkImport;
 
 internal static class Program
 {
+    private static bool isFake = true;
+
     private const string ManaBoxPath = "ManaBox";
     private const string UserAgent = "ManaBox Bulk Importer";
 
-    private static int Main(string[] _)
+    private static int Main(string[] args)
     {
+        isFake = args.Length > 10;
+
         Console.WriteLine("ManaBox Bulk Importer 1.0.0");
 
         var oneDrivePath = Environment.GetEnvironmentVariable("OneDriveConsumer");
@@ -20,6 +24,29 @@ internal static class Program
         }
 
         var client = new ScryfallClient(UserAgent);
+
+        var bulkData = client.GetBulkData().First(bd => bd.Name == "Default Cards");
+
+        var defaultCards = client.GetBulkData(bulkData);
+
+        var cardCache = defaultCards.GroupBy(cd => cd.Set).ToDictionary(g => g.Key, g => g.ToDictionary(gg => gg.CollectorNumber, gg => gg));
+        int bad = 0;
+        int good = 0;
+
+        foreach (var card in defaultCards)
+        {
+            if (!int.TryParse(card.CollectorNumber, out var n))
+            {
+                ++bad;
+                Console.WriteLine($"Failed to parse '{card.CollectorNumber}' {card.SetName}");
+            }
+            else
+            {
+                ++good;
+            }
+        }
+
+        Console.WriteLine($"Bad: {bad} Good: {good}");
 
         Console.WriteLine("Downloading sets.");
         Dictionary<string, CardSet>? setDefinitions = null;
@@ -43,10 +70,11 @@ internal static class Program
 
         Console.WriteLine($"Writing data to {fileName}");
 
-        File.WriteAllLines(fileName, [Card.GetManaBoxHeader()]);
-        File.WriteAllLines(backupFileName, [Card.GetManaBoxHeader()]);
-
-        var cardCache = new Dictionary<string, Dictionary<string, CardDefinition>>();
+        if (!isFake)
+        {
+            File.WriteAllLines(fileName, [Card.GetManaBoxHeader()]);
+            File.WriteAllLines(backupFileName, [Card.GetManaBoxHeader()]);
+        }
 
         var allCards = new Dictionary<string, Card>();
 
@@ -70,7 +98,10 @@ internal static class Program
             {
                 if (card != null)
                 {
-                    File.AppendAllLines(fileName + ".backup", [card.GetManaBoxString()]);
+                    if (!isFake)
+                    { 
+                        File.AppendAllLines(fileName + ".backup", [card.GetManaBoxString()]); 
+                    }
 
                     if (allCards.TryGetValue(card.GetKey(), out var existing))
                     {
@@ -93,8 +124,11 @@ internal static class Program
         {
             Console.WriteLine(
                 $"Writing {allCards.Sum(c => c.Value.Count)} total and {allCards.Count} unique cards to {fileName}");
-            File.AppendAllLines(fileName,
+            if (!isFake)
+            {
+                File.AppendAllLines(fileName,
                 allCards.Values.OrderBy(c => c.CardDefinition.Name).Select(c => c.GetManaBoxString()));
+            }
         }
 
         return 0;
@@ -152,7 +186,12 @@ internal static class Program
                 return false;
             }
 
-            InputParser.Parse(input, out var code, out var isJapanese, out var isFoil, out var count);
+            InputParser.Parse(input, out var set, out var code, out var isJapanese, out var isFoil, out var count);
+
+            if (set != null)
+            {
+
+            }
 
             if (!cardSet.TryGetValue(code, out var cardDefinition))
             {

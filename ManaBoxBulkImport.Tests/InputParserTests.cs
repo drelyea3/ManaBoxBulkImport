@@ -15,6 +15,20 @@ namespace ManaBoxBulkImportTests
         }
 
         [Fact]
+        public void SetAndCode()
+        {
+            AssertInput("xyz:123", "xyz", "123", expectedIsJapanese: false, expectedIsFoil: false, 1);
+            AssertInput("xyz:123jf", "xyz", "123", expectedIsJapanese: true, expectedIsFoil: true, 1);
+        }
+
+        [Fact]
+        public void BadSetsAndCodes()
+        { 
+            AssertFail(":123");
+            AssertFail("1:2:3");
+        }
+
+        [Fact]
         public void IsJapaneseOnly()
         {
             AssertInput("123j", "123", expectedIsJapanese: true, expectedIsFoil: false, 1);
@@ -54,11 +68,30 @@ namespace ManaBoxBulkImportTests
 
         private void AssertInput(string input, string expectedCode, bool expectedIsJapanese, bool expectedIsFoil, int expectedCount)
         {
-            InputParser.Parse(input, out var code, out var isJapanese, out var isFoil, out var count);
+            InputParser.Parse(input, out var set, out var code, out var isJapanese, out var isFoil, out var count);
+            Assert.Null(set);
             Assert.Equal(expectedCode, code);
             Assert.Equal(expectedIsJapanese, isJapanese);
             Assert.Equal(expectedIsFoil, isFoil);
             Assert.Equal(expectedCount, count);
+        }
+
+
+        private void AssertInput(string input, string expectedSet, string expectedCode, bool expectedIsJapanese, bool expectedIsFoil, int expectedCount)
+        {
+            var result = InputParser.Parse(input, out var set, out var code, out var isJapanese, out var isFoil, out var count);
+            Assert.True(result);
+            Assert.Equal(expectedSet, set);
+            Assert.Equal(expectedCode, code);
+            Assert.Equal(expectedIsJapanese, isJapanese);
+            Assert.Equal(expectedIsFoil, isFoil);
+            Assert.Equal(expectedCount, count);
+        }
+
+        private void AssertFail(string input)
+        {
+            var result = InputParser.Parse(input, out var _, out var _, out var _, out var _, out var _);
+            Assert.False(result);
         }
     }
 }

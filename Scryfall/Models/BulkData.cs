@@ -14,7 +14,7 @@ public class BulkData
     public DateTime UpdatedAt { get; set; }
 
     [JsonPropertyName("uri")]
-    public string Uri { get; set; }
+    public Uri Uri { get; set; }
 
     [JsonPropertyName("name")]
     public string Name { get; set; }
@@ -26,7 +26,7 @@ public class BulkData
     public long Size { get; set; }
 
     [JsonPropertyName("download_uri")]
-    public string DownloadUri { get; set; }
+    public Uri DownloadUri { get; set; }
 
     [JsonPropertyName("content_type")]
     public string ContentType { get; set; }

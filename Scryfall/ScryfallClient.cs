@@ -1,4 +1,5 @@
 ﻿using Scryfall.Models;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -7,15 +8,60 @@ namespace Scryfall;
 public class ScryfallClient
 {
     private const string ScryfallUriText = "https://api.scryfall.com/";
+
     private static readonly Uri ScryfallUri = new(ScryfallUriText);
 
-    private readonly HttpClient Client;
+    private readonly string _userAgent;
+
+    [NotNull]
+    private HttpClient? _client;
+
+    private HttpClient Client => _client ??= _client ??= CreateClient(ScryfallUri);
 
     public ScryfallClient(string userAgent)
     {
-        Client = new HttpClient();
-        Client.BaseAddress = ScryfallUri;
-        Client.DefaultRequestHeaders.Add("User-Agent", userAgent);
+        _userAgent = userAgent;
+    }
+
+    private HttpClient CreateClient(Uri baseUri)
+    {
+        var client = new HttpClient();
+        client.BaseAddress = baseUri;
+        client.DefaultRequestHeaders.Add("User-Agent", _userAgent);
+
+        return client;
+    }
+    public List<BulkData> GetBulkData()
+    {
+        return GetBulkDataAsync().Result;
+    }
+
+    public async Task<List<BulkData>> GetBulkDataAsync()
+    {
+        var results = await TryGetJsonAsync<BulkData>("bulk-data");
+
+        return results ?? [];
+    }
+
+    public List<CardDefinition> GetBulkData(BulkData bulkData)
+    {
+        if (File.Exists("Default_cards.json"))
+        {
+            Console.WriteLine("Reading card definitions from cache.");
+            using var jsonStream = new FileStream("Default_cards.json", FileMode.Open, FileAccess.Read);
+            
+            return JsonSerializer.Deserialize<List<CardDefinition>>(jsonStream) ?? [];
+        }
+        else
+        {
+            Console.WriteLine("Downloading card definitions.");
+            var json = Client.GetStringAsync(bulkData.DownloadUri.ToString()).Result;
+
+            Console.WriteLine("Writing card definitions to cache.");
+            File.WriteAllText("Default_cards.json", json);
+
+            return JsonSerializer.Deserialize<List<CardDefinition>>(json) ?? [];
+        }
     }
 
     public Dictionary<string, CardSet>? GetSets()
@@ -42,12 +88,12 @@ public class ScryfallClient
 
     public Task<List<CardDefinition>> GetCards(CardSet cardSet)
     {
-        return TryGetJson<CardDefinition>($"/cards/search?q=set:{cardSet.Code}+unique:prints+game:paper");
+        return TryGetJsonAsync<CardDefinition>($"/cards/search?q=set:{cardSet.Code}+unique:prints+game:paper");
     }
 
     public async Task<List<Symbology>> GetSymbologyAsync()
     {
-        var results = await TryGetJson<Symbology>("/symbology");
+        var results = await TryGetJsonAsync<Symbology>("/symbology");
 
         return results ?? [];
     }
@@ -83,7 +129,7 @@ public class ScryfallClient
         }
     }
 
-    private async Task<List<TItem>> TryGetJson<TItem>(string requestUri)
+    private async Task<List<TItem>> TryGetJsonAsync<TItem>(string requestUri)
         where TItem : class
     {
         var originalRequestUri = requestUri;
