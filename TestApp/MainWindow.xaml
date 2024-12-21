@@ -54,7 +54,7 @@
                         <Image
                             Height="340"
                             Margin="5"
-                            Source="{Binding CardDefinition.ImageUris.Normal}"
+                            Source="{Binding CardDefinition.ImageUris.Normal, IsAsync=True}"
                             Stretch="Uniform" />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

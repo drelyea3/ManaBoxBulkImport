@@ -1,5 +1,5 @@
-﻿using Scryfall.Models;
-using Scryfall;
+﻿using Scryfall;
+using Scryfall.Models;
 
 namespace ManaBoxBulkImport;
 
@@ -30,23 +30,6 @@ internal static class Program
         var defaultCards = client.GetBulkData(bulkData);
 
         var cardCache = defaultCards.GroupBy(cd => cd.Set).ToDictionary(g => g.Key, g => g.ToDictionary(gg => gg.CollectorNumber, gg => gg));
-        int bad = 0;
-        int good = 0;
-
-        foreach (var card in defaultCards)
-        {
-            if (!int.TryParse(card.CollectorNumber, out var n))
-            {
-                ++bad;
-                Console.WriteLine($"Failed to parse '{card.CollectorNumber}' {card.SetName}");
-            }
-            else
-            {
-                ++good;
-            }
-        }
-
-        Console.WriteLine($"Bad: {bad} Good: {good}");
 
         Console.WriteLine("Downloading sets.");
         Dictionary<string, CardSet>? setDefinitions = null;
@@ -70,51 +53,88 @@ internal static class Program
 
         Console.WriteLine($"Writing data to {fileName}");
 
-        if (!isFake)
-        {
-            File.WriteAllLines(fileName, [Card.GetManaBoxHeader()]);
-            File.WriteAllLines(backupFileName, [Card.GetManaBoxHeader()]);
-        }
-
         var allCards = new Dictionary<string, Card>();
 
-        Dictionary<string, CardDefinition>? selectedCardSet;
+        CardSet? selectedCardSet = null;
+
         while (true)
         {
-            if (!TryGetCardSet(setDefinitions, out var selectedSet) || selectedSet == null)
+            CardSpec? cardSpec = null;
+            try
             {
-                break;
-            }
-            else if (!cardCache.TryGetValue(selectedSet.Code, out selectedCardSet))
-            {
-                Console.WriteLine($"Loading cards for {selectedSet.Code} {selectedSet.Name}.");
-                var cards = client.GetCards(selectedSet).Result;
-                Console.WriteLine($"Loaded {cards.Count} cards.");
-                selectedCardSet = cards.ToDictionary(c => c.CollectorNumber, c => c);
-                cardCache[selectedSet.Code] = selectedCardSet;
-            }
-
-            while (TryGetCard(selectedSet.Code, selectedCardSet, out var card))
-            {
-                if (card != null)
+                Console.WriteLine();
+                var result = Prompt(selectedCardSet, out cardSpec);
+                if (!result)
                 {
-                    if (!isFake)
-                    { 
-                        File.AppendAllLines(fileName + ".backup", [card.GetManaBoxString()]); 
-                    }
+                    continue;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
 
-                    if (allCards.TryGetValue(card.GetKey(), out var existing))
+            if (cardSpec == null)
+            {
+                continue;
+            }
+
+            if (cardSpec.SetId == null && selectedCardSet == null)
+            {
+                Console.WriteLine("Set code and card ID required, e.g., FDN:240");
+                continue;
+            }
+
+            if (cardSpec.SetId != null)
+            {
+                if (setDefinitions.TryGetValue(cardSpec.SetId, out var newSetDefinition) && newSetDefinition != null)
+                {
+                    selectedCardSet = newSetDefinition;
+                }
+                else
+                {
+                    Console.WriteLine("Set not found.");
+                    continue;
+                }
+            }
+
+            if (!cardCache[selectedCardSet!.Code].TryGetValue(cardSpec.CollectorId, out var cardDef))
+            {
+                Console.WriteLine("Card not found.");
+                continue;
+            }
+
+            var card = cardSpec.CreateCard(cardDef!);
+
+            if (card != null)
+            {
+                PrintCardInformation(card);
+
+                if (!Confirm())
+                {
+                    continue;
+                }
+
+                if (!isFake)
+                {
+                    if (allCards.Count == 0)
                     {
-                        existing.Count += card.Count;
-                        Console.WriteLine($"Quantity updated to {existing.Count}.");
+                        File.WriteAllLines(backupFileName, [Card.GetManaBoxHeader()]);
                     }
-                    else
+                    File.AppendAllLines(fileName + ".backup", [card.GetManaBoxString()]);
+                }
+
+                if (allCards.TryGetValue(card.GetKey(), out var existing))
+                {
+                    existing.Count += card.Count;
+                    Console.WriteLine($"Quantity updated to {existing.Count}.");
+                }
+                else
+                {
+                    allCards.Add(card.GetKey(), card);
+                    if (card.Count > 1)
                     {
-                        allCards.Add(card.GetKey(), card);
-                        if (card.Count > 1)
-                        {
-                            Console.WriteLine($"Quantity {card.Count}.");
-                        }
+                        Console.WriteLine($"Quantity {card.Count}.");
                     }
                 }
             }
@@ -122,153 +142,91 @@ internal static class Program
 
         if (allCards.Count > 0)
         {
-            Console.WriteLine(
-                $"Writing {allCards.Sum(c => c.Value.Count)} total and {allCards.Count} unique cards to {fileName}");
+            Console.WriteLine($"Writing {allCards.Sum(c => c.Value.Count)} total and {allCards.Count} unique cards to {fileName}");
             if (!isFake)
             {
-                File.AppendAllLines(fileName,
-                allCards.Values.OrderBy(c => c.CardDefinition.Name).Select(c => c.GetManaBoxString()));
+                File.WriteAllLines(fileName, [Card.GetManaBoxHeader()]);
+                File.AppendAllLines(fileName, allCards.Values.OrderBy(c => c.CardDefinition.Name).Select(c => c.GetManaBoxString()));
             }
         }
 
         return 0;
     }
 
-    private static bool TryGetCardSet(Dictionary<string, CardSet> setDefinitions, out CardSet? cardSet)
+    private static void PrintCardInformation(Card card)
     {
+        var cardDefinition = card.CardDefinition;
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine($"{cardDefinition.CollectorNumber} {cardDefinition.Name}");
+        Console.ResetColor();
+        Console.WriteLine(card.GetManaBoxString());
+
+        var nonFoilPrice = cardDefinition.Prices.Usd != null ? $"${cardDefinition.Prices.Usd}" : "n/a";
+        var foilPrice = cardDefinition.Prices.UsdFoil != null ? $"${cardDefinition.Prices.UsdFoil}" : "n/a";
+
+        Console.Write("Pricing: non-foil ");
+        if (!card.IsFoil)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+        }
+
+        Console.Write(nonFoilPrice);
+        Console.ResetColor();
+
+        Console.Write(" foil ");
+        if (card.IsFoil)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+        }
+        Console.WriteLine(foilPrice);
+        Console.ResetColor();
+    }
+
+    public static bool Prompt(CardSet? cardSet, out CardSpec? cardSpec)
+    {
+        cardSpec = null;
+
+        if (cardSet == null)
+        {
+            Console.Write("Enter card (? for help): ");
+        }
+        else
+        {
+            Console.Write($"Enter card (? for help) [{cardSet.Code}]: ");
+        }
+
+        var userInput = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(userInput))
+        {
+            return false;
+        }
+
+        return CardSpec.TryCreate(userInput, out cardSpec);
+    }
+
+    private static bool Confirm()
+    {
+        Console.Write("Correct (Y/N)?");
+
         while (true)
         {
-            Console.Write("Enter set ID: ");
-            var input = Console.ReadLine();
+            var key = Console.ReadKey(true);
 
-            if (string.IsNullOrEmpty(input))
+            if (key.Key == ConsoleKey.Y)
             {
-                cardSet = null;
-                return false;
-            }
-
-            var code = input.Trim();
-
-            if (setDefinitions.TryGetValue(code, out cardSet))
-            {
-                Console.WriteLine($"{cardSet.Code}\t{cardSet.Name}");
+                Console.WriteLine(key.KeyChar);
                 return true;
             }
 
-            Console.WriteLine("Set not found.");
-        }
-    }
-
-    private static bool TryGetCard(string setCode, Dictionary<string, CardDefinition> cardSet, out Card? card)
-    {
-        while (true)
-        {
-            Console.Write($"Enter card ID (? for help) [{setCode}]: ");
-            var input = Console.ReadLine();
-
-            if (input?.Trim() == "?")
+            if (key.Key == ConsoleKey.N)
             {
-                Console.WriteLine("<code>[flags]");
-                Console.WriteLine("\tFlags are not case-sensitive and can be in any order.");
-                Console.WriteLine("\tf\tFoil");
-                Console.WriteLine("\tj\tJapanese");
-                Console.WriteLine("\t<N>\tCount (default count is 1)");
-                Console.WriteLine("Examples:");
-                Console.WriteLine("272 272,13 272 2f 272jf 272jf2");
-                Console.WriteLine();
-                Console.WriteLine("Enter a blank line to return to selecting card set.");
-                Console.WriteLine();
-                continue;
-            }
-            if (string.IsNullOrEmpty(input))
-            {
-                card = null;
+                Console.WriteLine(key.KeyChar);
                 return false;
             }
 
-            InputParser.Parse(input, out var set, out var code, out var isJapanese, out var isFoil, out var count);
-
-            if (set != null)
-            {
-
-            }
-
-            if (!cardSet.TryGetValue(code, out var cardDefinition))
-            {
-                Console.WriteLine("Card not found.");
-                continue;
-            }
-
-            if (cardDefinition != null)
-            {
-                isFoil = GetFixedFoil(cardDefinition, isFoil);
-
-                card = new Card(cardDefinition, isFoil, isJapanese, count);
-
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine($"{card.CardDefinition.CollectorNumber} {card.CardDefinition.Name}");
-                Console.ResetColor();
-                Console.WriteLine(card.GetManaBoxString());
-
-                var nonFoilPrice = cardDefinition.Prices.Usd != null ? $"${cardDefinition.Prices.Usd}" : "n/a";
-                var foilPrice = cardDefinition.Prices.UsdFoil != null ? $"${cardDefinition.Prices.UsdFoil}" : "n/a";
-
-                Console.Write("Pricing: non-foil ");
-                if (!isFoil)
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                }
-
-                Console.Write(nonFoilPrice);
-                Console.ResetColor();
-
-                Console.Write(" foil ");
-                if (isFoil)
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                }
-                Console.WriteLine(foilPrice);
-                Console.ResetColor();
-
-                while (true)
-                {
-                    Console.Write("Correct (Y/N)?");
-                    var key = Console.ReadKey();
-                    Console.WriteLine();
-
-                    if (key.Key == ConsoleKey.Y)
-                    {
-                        Console.WriteLine();
-                        return true;
-                    }
-
-                    if (key.Key == ConsoleKey.N)
-                    {
-                        Console.WriteLine();
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                card = null;
-                return false;
-            }
-        }
-    }
-
-    private static bool GetFixedFoil(CardDefinition cardDefinition, bool isFoil)
-    {
-        switch (isFoil)
-        {
-            case true when !cardDefinition.Foil:
-                Console.WriteLine("Card is not available in foil");
-                return false;
-            case false when !cardDefinition.Nonfoil:
-                Console.WriteLine("Card is only available in foil");
-                return true;
-            default:
-                return isFoil;
+            Console.Beep();
         }
     }
 

@@ -9,7 +9,7 @@ public class Card
     public int Count { get; set; } = 1;
     public bool IsFoil { get; }
     public string Language { get; }
-    public string Condition => "near_mint";
+    public string Condition { get; }
 
     public string IsFoilText => IsFoil ? "foil" : "normal";
 
@@ -28,11 +28,12 @@ public class Card
         return "Name,Set code,Quantity,Foil,Card number,Language,Condition";
     }
 
-    public Card(CardDefinition cardDefinition, bool isFoil, bool isJapanese, int count)
+    public Card(CardDefinition cardDefinition, bool isFoil, string language, string condition, int count)
     {
         CardDefinition = cardDefinition;
         IsFoil = isFoil;
-        Language = isJapanese ? "ja" : "en";
+        Language = language;
+        Condition = condition;
         Count = count;
     }
 }
