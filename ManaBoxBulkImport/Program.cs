@@ -1,7 +1,4 @@
-﻿using Scryfall;
-using Scryfall.Models;
-
-namespace ManaBoxBulkImport;
+﻿namespace ManaBoxBulkImport;
 
 internal static class Program
 {

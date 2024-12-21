@@ -5,32 +5,31 @@ using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace TestApp.Converters
+namespace TestApp.Converters;
+
+public class SetImageSourceConverter : IValueConverter
 {
-    public class SetImageSourceConverter : IValueConverter
+    private static Dictionary<Uri, ImageSource> _imageSources = new ();
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        private static Dictionary<Uri, ImageSource> _imageSources = new ();
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        if (value is CardSet set && targetType == typeof(ImageSource))
         {
-            if (value is CardSet set && targetType == typeof(ImageSource))
+            if (!_imageSources.TryGetValue(set.IconSvgUri, out var bmp))
             {
-                if (!_imageSources.TryGetValue(set.IconSvgUri, out var bmp))
-                {
-                    var fileName = "_" + Path.GetFileName(set.IconSvgUri.LocalPath).Replace(".svg", ".png");
-                    var uri = new Uri($"pack://application:,,,/Images/set/{fileName}");
-                    bmp = new BitmapImage(uri);                    
-                    _imageSources[set.IconSvgUri] = bmp;
-                }
-
-                return bmp;
+                var fileName = "_" + Path.GetFileName(set.IconSvgUri.LocalPath).Replace(".svg", ".png");
+                var uri = new Uri($"pack://application:,,,/Images/set/{fileName}");
+                bmp = new BitmapImage(uri);                    
+                _imageSources[set.IconSvgUri] = bmp;
             }
-            return null;
-        }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
+            return bmp;
         }
+        return null;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
     }
 }
