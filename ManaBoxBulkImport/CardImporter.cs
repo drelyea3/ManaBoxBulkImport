@@ -23,6 +23,8 @@ namespace ManaBoxBulkImport
         Dictionary<string, Dictionary<string, CardDefinition>> _cardCache = [];
         Dictionary<string, CardSet> _setDefinitions = [];
 
+        CardSet? _selectedCardSet = null;
+
         [NotNull]
         private string? _fileName;
         [NotNull]
@@ -78,7 +80,7 @@ namespace ManaBoxBulkImport
                 return;
             }
 
-            CardSet? selectedCardSet = null;
+            _selectedCardSet = null;
 
             while (true)
             {
@@ -86,7 +88,7 @@ namespace ManaBoxBulkImport
                 try
                 {
                     Console.WriteLine();
-                    var result = Prompt(selectedCardSet, out cardSpec, out var exit);
+                    var result = Prompt(_selectedCardSet, out cardSpec, out var exit);
                     if (!result)
                     {
                         continue;
@@ -107,7 +109,7 @@ namespace ManaBoxBulkImport
                     continue;
                 }
 
-                if (cardSpec.SetId == null && selectedCardSet == null)
+                if (cardSpec.SetId == null && _selectedCardSet == null)
                 {
                     Console.WriteLine("Set code and card ID required, e.g., FDN:240");
                     continue;
@@ -117,7 +119,12 @@ namespace ManaBoxBulkImport
                 {
                     if (_setDefinitions.TryGetValue(cardSpec.SetId, out var newSetDefinition) && newSetDefinition != null)
                     {
-                        selectedCardSet = newSetDefinition;
+                        _selectedCardSet = newSetDefinition;
+                        if (string.IsNullOrEmpty(cardSpec.CollectorId))
+                        {
+                            Console.WriteLine(_selectedCardSet.GetOutputString());
+                            continue;
+                        }
                     }
                     else
                     {
@@ -126,7 +133,7 @@ namespace ManaBoxBulkImport
                     }
                 }
 
-                if (!_cardCache[selectedCardSet!.Code].TryGetValue(cardSpec.CollectorId, out var cardDef))
+                if (!_cardCache[_selectedCardSet!.Code].TryGetValue(cardSpec.CollectorId, out var cardDef))
                 {
                     Console.WriteLine("Card not found.");
                     continue;
@@ -136,7 +143,7 @@ namespace ManaBoxBulkImport
 
                 if (card != null)
                 {
-                    PrintCardInformation(selectedCardSet, card);
+                    PrintCardInformation(_selectedCardSet, card);
 
                     if (!Confirm())
                     {
@@ -203,7 +210,7 @@ namespace ManaBoxBulkImport
             var nonFoilPrice = cardDefinition.Prices.Usd != null ? $"${cardDefinition.Prices.Usd}" : "n/a";
             var foilPrice = cardDefinition.Prices.UsdFoil != null ? $"${cardDefinition.Prices.UsdFoil}" : "n/a";
 
-            Console.Write("Pricing: non-foil ");
+            Console.Write("Pricing (NM): non-foil ");
             if (!card.IsFoil)
             {
                 Console.ForegroundColor = ConsoleColor.Green;
@@ -285,14 +292,20 @@ namespace ManaBoxBulkImport
 
             switch (cmd)
             {
+                case "LC":
+                    ListCardsByName(text);
+                    return true;
+
+                case "LO":
+                    ListSimilarCards(_selectedCardSet, text);
+                    return true;
+
                 case "LS":
-                    // List sets
                     ListSets(text);
                     return true;
 
-                case "LC":
-                    // List cards by name
-                    ListCardsByName(text);
+                case "LSC":
+                    ListCardsBySet(_selectedCardSet, text);
                     return true;
 
                 case "Q":
@@ -306,11 +319,29 @@ namespace ManaBoxBulkImport
             }
         }
 
+        private void ListCardsBySet(CardSet? set, string? text)
+        {
+            if (set == null)
+            {
+                Console.WriteLine("No set selected.");
+                return;
+            }
+
+            var source = text == null
+                ? _cardCache[set.Code].Values
+                : _cardCache[set.Code].Values.Where(c => c.Name.Contains(text, StringComparison.OrdinalIgnoreCase));
+
+            foreach (var card in source.OrderBy(c => c.Name).ThenBy(c => c.CollectorNumber))
+            {
+                Console.WriteLine($"{card.CollectorNumber}\t{card.Name}");
+            }
+        }
+
         private void ListSets(string? substring)
         {
             var source = string.IsNullOrWhiteSpace(substring)
                 ? _setDefinitions.Values.OrderBy(s => s.Name)
-                : _setDefinitions.Values.Where(s => s.Name.Contains(substring, StringComparison.InvariantCultureIgnoreCase));
+                : _setDefinitions.Values.Where(s => s.Name.Contains(substring, StringComparison.InvariantCultureIgnoreCase) || s.Code.Contains(substring, StringComparison.InvariantCultureIgnoreCase));
 
             foreach (var set in source.OrderBy(s => s.Name))
             {
@@ -327,6 +358,27 @@ namespace ManaBoxBulkImport
             foreach (var card in source.Select(kvp => kvp.Value).OrderBy(c => c.Name).ThenBy(c => c.Set))
             {
                 Console.WriteLine($"{card.Set}\t{card.CollectorNumber}\t{card.Name}");
+            }
+        }
+
+        private void ListSimilarCards(CardSet? set, string cardId)
+        {
+            if (set == null)
+            {
+                Console.WriteLine("No set selected");
+                return;
+            }
+
+            if (!_cardCache[set.Code].TryGetValue(cardId, out var card) || card == null)
+            {
+                Console.WriteLine("Card not found");
+            }
+
+            var source = _cardCache.SelectMany(s => s.Value).Where(c => c.Value.OracleId == card.OracleId);
+
+            foreach (var c in source.Select(kvp => kvp.Value).OrderBy(c => c.Name).ThenBy(c => c.Set))
+            {
+                Console.WriteLine($"{c.Set}\t{c.CollectorNumber}\t{c.Name}");
             }
         }
 

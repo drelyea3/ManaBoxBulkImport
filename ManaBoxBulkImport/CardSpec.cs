@@ -94,8 +94,8 @@ namespace ManaBoxBulkImport
                     case "EX":
                         SetCondition(result, "excellent");
                         break;
-                    case "VG":
-                        SetCondition(result, "very_good");
+                    case "G":
+                        SetCondition(result, "good");
                         break;
                     case "F":
                         result._isFoil = true;
